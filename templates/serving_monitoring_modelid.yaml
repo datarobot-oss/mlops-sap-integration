@@ -1,0 +1,90 @@
+apiVersion: ai.sap.com/v1alpha1
+kind: ServingTemplate
+metadata:
+  annotations:
+    scenarios.ai.sap.com/name: "DataRobot MLOps public pipeline"
+    scenarios.ai.sap.com/description: "DataRobot MLOps scoring code serving and monitoring pipeline"
+    executables.ai.sap.com/name: "mlops-monitoring-scoring-code"
+  labels:
+    ai.sap.com/version: "1.0"
+    scenarios.ai.sap.com/id: "mlops-scoring-code-monitoring"
+  name: monitor-scoring-executable-1.0
+
+spec:
+  inputs:
+    parameters:
+      - name: MLOPS_DEPLOYMENT_ID
+        type: string
+      - name: MLOPS_MODEL_ID
+        type: string
+      - name: MLOPS_MODEL_PACKAGE_ID
+        type: string
+      - name: TARGET_TYPE
+        type: string
+      - name: POSITIVE_CLASS_LABEL
+        type: string
+      - name: NEGATIVE_CLASS_LABEL
+        type: string
+      - name: CLASS_LABELS
+        type: string
+      - name: MONITOR
+        type: string
+      - name: MONITOR_SETTINGS
+        type: string
+      - name: MLOPS_IMAGE_NAME
+        type: string
+      - name: MLOPS_REGISTRY_SECRETS_NAME
+        type: string
+      - name: MLOPS_SECRETS_NAME
+        type: string
+        default: datarobot-secrets
+      - name: MLOPS_SAP_RESOURCE_PLAN
+        type: string
+        default: starter
+  template:
+    apiVersion: "serving.kserve.io/v1beta1"
+    metadata:
+      labels: |
+        ai.sap.com/resourcePlan: "{{inputs.parameters.MLOPS_SAP_RESOURCE_PLAN}}"
+    spec: |
+      predictor:
+        imagePullSecrets:
+          - name: "{{inputs.parameters.MLOPS_REGISTRY_SECRETS_NAME}}"
+        minReplicas: 1
+        containers:
+        - name: kserve-container
+          image: "{{inputs.parameters.MLOPS_IMAGE_NAME}}"
+          imagePullPolicy: Always
+          ports:
+           - containerPort: 9001
+             protocol: TCP
+          env:
+            - name: DEPLOYMENT_ID
+              value: "{{inputs.parameters.MLOPS_DEPLOYMENT_ID}}"
+            - name: MODEL_ID
+              value: "{{inputs.parameters.MLOPS_MODEL_ID}}"
+            - name: MLOPS_MODEL_PACKAGE_ID
+              value: "{{inputs.parameters.MLOPS_MODEL_PACKAGE_ID}}"
+            - name: TARGET_TYPE
+              value: "{{inputs.parameters.TARGET_TYPE}}"
+            - name: POSITIVE_CLASS_LABEL
+              value: "{{inputs.parameters.POSITIVE_CLASS_LABEL}}"
+            - name: NEGATIVE_CLASS_LABEL
+              value: "{{inputs.parameters.NEGATIVE_CLASS_LABEL}}"
+            - name: CLASS_LABELS
+              value: "{{inputs.parameters.CLASS_LABELS}}"
+            - name: MONITOR
+              value: "{{inputs.parameters.MONITOR}}"
+            - name: MONITOR_SETTINGS
+              value: "{{inputs.parameters.MONITOR_SETTINGS}}"
+            - name: DATAROBOT_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                    name: "{{inputs.parameters.MLOPS_SECRETS_NAME}}"
+                    key: DATAROBOT_ENDPOINT
+            - name: DATAROBOT_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                    name: "{{inputs.parameters.MLOPS_SECRETS_NAME}}"
+                    key: DATAROBOT_API_TOKEN
+        timeout: 30
