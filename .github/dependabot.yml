@@ -1,0 +1,8 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/environments/java_codegen_monitoring/"
+    schedule:
+      interval: "monthly"
+    reviewers:
+      - "datarobot/tracking-agent"
