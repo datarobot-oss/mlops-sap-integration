@@ -1,10 +1,10 @@
 SHELL = /bin/sh
 
-NS := dulcardo
+NS := datarobot
 IMAGE_NAME := mlops-sap-monitoring-scoring-code
-VERSION := 1.0.7
+VERSION := 1.0.0
 
-REGISTRY :=
+REGISTRY := ghcr.io
 DOCKERFILE := Dockerfile
 
 ifeq ($(REGISTRY),)
@@ -14,6 +14,12 @@ else
 endif
 
 MAJOR_VERSION = $(shell echo $(VERSION) | sed 's/\.[^\.]*$$//')
+
+print:
+	@echo "Building image for scoring code predictor: "
+	@echo "	$(fq_image):$(VERSION)"
+	@echo "	$(fq_image):$(MAJOR_VERSION)"
+	@echo "	$(fq_image):latest"
 
 build: ## > build - To build the this docker image
 	docker build --pull \
