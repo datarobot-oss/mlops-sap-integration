@@ -1,6 +1,6 @@
 SHELL = /bin/sh
 
-NS := datarobot
+NS := datarobot-oss
 IMAGE_NAME := mlops-sap-monitoring-scoring-code
 VERSION := 1.0.0
 
