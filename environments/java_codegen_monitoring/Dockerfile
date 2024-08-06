@@ -1,6 +1,9 @@
 # This is the default base image for use with user models and workflows.
 FROM datarobot/dropin-env-base-jdk:debian11-py3.9-jdk11.0.16-drum1.11.5-mlops9.2.8
 
+LABEL org.opencontainers.image.source=https://github.com/datarobot-oss/mlops-sap-integration
+LABEL org.opencontainers.image.description="Docker image used to download and predic DR models"
+
 # Install the list of core requirements, e.g. sklearn, numpy, pandas, flask.
 # **Don't modify this file!**
 COPY requirements.txt requirements.txt
