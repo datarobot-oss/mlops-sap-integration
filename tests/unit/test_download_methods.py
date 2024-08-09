@@ -35,8 +35,10 @@ class TestModelPackageUtils:
 
     @pytest.fixture
     def mock_mlops_client(self):
-        target = "environments.java_codegen_monitoring.download_model.MLOpsClient"
-        with patch(target, autospec=True) as m:
+        with patch(
+            "environments.java_codegen_monitoring.download_model.MLOpsClient",
+            autospec=True
+        ) as m:
             yield m
 
     def test_init_successful(self, mock_mlops_client, env_vars):
@@ -72,7 +74,9 @@ class TestModelPackageUtils:
         mock_class_names = ["class1", "class2", "class3"]
         custom_file_path = "/custom/path/classLabels.txt"
 
-        with patch.dict(os.environ, {"CLASS_LABELS_FILE": custom_file_path}), patch(
+        with patch.dict(
+                os.environ, {"CLASS_LABELS_FILE": custom_file_path}
+        ), patch(
             "builtins.open", mock_open()
         ) as mocked_file:
             instance = ModelPackageUtils()
@@ -84,21 +88,23 @@ class TestModelPackageUtils:
             )
 
     @pytest.mark.parametrize("target_type", ["multiclass", "binary"])
-    def test_download_multiclass(self, target_type, mock_mlops_client, env_vars):
+    def test_download_multiclass(
+            self, target_type, mock_mlops_client, env_vars
+    ):
         with patch.dict(os.environ, {"TARGET_TYPE": target_type}):
 
             instance = ModelPackageUtils()
             instance.download()
-            mock_client = mock_mlops_client.return_value
+            mock = mock_mlops_client.return_value
 
             if target_type == "multiclass":
-                mock_client.get_model_package.assert_called_once_with(
+                mock.get_model_package.assert_called_once_with(
                     env_vars["MLOPS_MODEL_PACKAGE_ID"]
                 )
             else:
-                mock_client.get_model_package.assert_not_called()
+                mock.get_model_package.assert_not_called()
 
-            mock_client.download_model_package_from_registry.assert_called_once_with(
+            mock.download_model_package_from_registry.assert_called_once_with(
                 env_vars["MLOPS_MODEL_PACKAGE_ID"],
                 env_vars["CODE_DIR"],
                 download_scoring_code=True,
