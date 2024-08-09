@@ -11,45 +11,56 @@ import sys
 from datarobot_mlops.connected.client import MLOpsClient
 
 
-model_package_id = os.environ.get("MLOPS_MODEL_PACKAGE_ID")
-if not model_package_id:
-    print("Missing model package id, env var MLOPS_MODEL_PACKAGE_ID not provided", file=sys.stderr)
-    raise SystemExit(1)
+class ModelPackageUtils:
 
-output_dir = os.environ.get("CODE_DIR")
-if not output_dir:
-    print("Missing output dir, env var CODE_DIR not provided", file=sys.stderr)
-    raise SystemExit(1)
+    REQUIRED_VARS = [
+        "DATAROBOT_ENDPOINT",
+        "DATAROBOT_API_TOKEN",
+        "MLOPS_MODEL_PACKAGE_ID",
+        "CODE_DIR",
+        "TARGET_TYPE",
+    ]
 
-target_type = os.environ.get("TARGET_TYPE")
-if not target_type:
-    print("Missing target type, env var TARGET_TYPE not provided", file=sys.stderr)
-    raise SystemExit(1)
+    def __init__(self):
+        missing_vars = [v for v in self.REQUIRED_VARS if v not in os.environ]
+        if missing_vars:
+            raise ValueError(f"Missing environment variables: {missing_vars}")
 
-endpoint = os.environ["DATAROBOT_ENDPOINT"]
-token = os.environ["DATAROBOT_API_TOKEN"]
+        self.model_package_id = os.environ["MLOPS_MODEL_PACKAGE_ID"]
+        self.output_dir = os.environ["CODE_DIR"]
+        self.target_type = os.environ["TARGET_TYPE"]
 
-print(f"Connecting to: {endpoint}")
-client = MLOpsClient(endpoint, token)
+        endpoint = os.environ["DATAROBOT_ENDPOINT"]
+        token = os.environ["DATAROBOT_API_TOKEN"]
 
-model_package_details = client.get_model_package(model_package_id)
-if not model_package_details:
-    print("Fail to extract model package details", file=sys.stderr)
-    raise SystemExit(1)
+        print(f"Connecting to: {endpoint}")
+        self.client = MLOpsClient(endpoint, token)
 
-print(f"Downloading model jar from: {endpoint}")
-client.download_model_package_from_registry(
-    model_package_id,
-    output_dir,
-    download_scoring_code=True,
-)
+    def _write_class_names(self, class_names):
+        class_names_file = f"{self.output_dir}/classLabels.txt"
+        class_names_file = os.environ.get("CLASS_LABELS_FILE", class_names_file)
 
-# When targetType == Multiclass, download the class names into a file
-if "multiclass" == target_type:
-    class_names_file = f"{output_dir}/classLabels.txt"
-    class_names_file = os.environ.get("CLASS_LABELS_FILE", class_names_file)
+        print(f"Writing class names: {class_names} to : {class_names_file}")
+        with open(class_names_file, mode="w") as f:
+            f.write("\n".join(class_names))
 
-    class_names = model_package_details["target"]["classNames"]
-    print(f"Writing class names: {class_names} to : {class_names_file}")
-    with open(class_names_file, mode="w") as f:
-        f.write("\n".join(class_names))
+    def download(self):
+        # When targetType == Multiclass, download the class names into a file
+        if self.target_type.casefold() == "multiclass":
+            model_package_details = self.client.get_model_package(self.model_package_id)
+            class_names = model_package_details["target"]["classNames"]
+            self._write_class_names(class_names)
+
+        self.client.download_model_package_from_registry(
+            self.model_package_id,
+            self.output_dir,
+            download_scoring_code=True,
+        )
+
+
+if __name__ == "__main__":
+    try:
+        ModelPackageUtils().download()
+    except Exception as e:
+        print(str(e), file=sys.stderr)
+        raise SystemExit(1)
