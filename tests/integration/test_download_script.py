@@ -5,7 +5,6 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 
-import json
 import logging
 import multiprocessing
 import os
@@ -23,8 +22,8 @@ from future.moves.urllib import parse
 multiprocessing.set_start_method("fork")
 
 
-ENVIRONMENTS_DIR = Path(__file__).parent.parent.parent / "environments"
-download_model_file = ENVIRONMENTS_DIR / "java_codegen_monitoring" / "download_model.py"
+ENVS_DIR = Path(__file__).parent.parent.parent / "environments"
+download_file = ENVS_DIR / "java_codegen_monitoring" / "download_model.py"
 logger = logging.getLogger("datarobot.sap.integration")
 
 
@@ -41,7 +40,8 @@ def mock_dr_app(class_names):
 
     @app.route("/api/v2/version/", methods=["GET"])
     def get_version():
-        return json.dumps({"major": 2, "minor": 35, "versionString": "2.35.0"}), 200
+        version = {"major": 2, "minor": 35, "versionString": "2.35.0"}
+        return version, HTTPStatus.OK
 
     @app.route("/api/v2/modelPackages/<model_package_id>/", methods=["GET"])
     def get_model_packages(model_package_id):
@@ -71,10 +71,13 @@ def mock_dr_app(class_names):
         model_file = tempfile.NamedTemporaryFile(delete=False)
         model_file.write(b"this is the content")
         model_file.close()
-        return send_file(model_file.name, as_attachment=True, download_name="model.jar")
+        return send_file(
+            model_file.name, as_attachment=True, download_name="model.jar"
+        )
 
     @app.route(
-        "/api/v2/modelPackages/<model_package_id>/scoringCodeBuilds/", methods=["POST"]
+        "/api/v2/modelPackages/<model_package_id>/scoringCodeBuilds/",
+        methods=["POST"]
     )
     def model_pacakge_builds(model_package_id):
         return "", HTTPStatus.ACCEPTED, {"location": "status"}
@@ -84,7 +87,7 @@ def mock_dr_app(class_names):
 
     server = Process(target=start_app)
     server.start()
-    yield parse.urlunparse(("http", "{}:{}".format(base_url, port), "", "", "", ""))
+    yield parse.urlunparse(("http", f"{base_url}:{port}", "", "", "", ""))
 
     logger.info("Shutting down mock server")
     server.terminate()
@@ -101,7 +104,7 @@ def test_script(mock_dr_app, class_names, tmpdir):
     }
     env.update(extra_vars)
 
-    subprocess.run(["python", str(download_model_file)], check=True, env=env)
+    subprocess.run(["python", str(download_file)], check=True, env=env)
     model_file = tmpdir.join("model.jar")
     assert model_file.check(file=True)
     assert model_file.read()
