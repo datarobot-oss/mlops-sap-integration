@@ -10,8 +10,7 @@ from unittest.mock import mock_open, patch
 
 import pytest
 
-from environments.java_codegen_monitoring.download_model import \
-    ModelPackageUtils
+from environments.java_codegen_monitoring.download_model import ModelPackageUtils
 
 
 class TestModelPackageUtils:
@@ -37,7 +36,7 @@ class TestModelPackageUtils:
     def mock_mlops_client(self):
         with patch(
             "environments.java_codegen_monitoring.download_model.MLOpsClient",
-            autospec=True
+            autospec=True,
         ) as m:
             yield m
 
@@ -74,9 +73,7 @@ class TestModelPackageUtils:
         mock_class_names = ["class1", "class2", "class3"]
         custom_file_path = "/custom/path/classLabels.txt"
 
-        with patch.dict(
-                os.environ, {"CLASS_LABELS_FILE": custom_file_path}
-        ), patch(
+        with patch.dict(os.environ, {"CLASS_LABELS_FILE": custom_file_path}), patch(
             "builtins.open", mock_open()
         ) as mocked_file:
             instance = ModelPackageUtils()
@@ -88,9 +85,7 @@ class TestModelPackageUtils:
             )
 
     @pytest.mark.parametrize("target_type", ["multiclass", "binary"])
-    def test_download_multiclass(
-            self, target_type, mock_mlops_client, env_vars
-    ):
+    def test_download_multiclass(self, target_type, mock_mlops_client, env_vars):
         with patch.dict(os.environ, {"TARGET_TYPE": target_type}):
 
             instance = ModelPackageUtils()

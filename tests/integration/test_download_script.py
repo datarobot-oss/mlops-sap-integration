@@ -71,13 +71,10 @@ def mock_dr_app(class_names):
         model_file = tempfile.NamedTemporaryFile(delete=False)
         model_file.write(b"this is the content")
         model_file.close()
-        return send_file(
-            model_file.name, as_attachment=True, download_name="model.jar"
-        )
+        return send_file(model_file.name, as_attachment=True, download_name="model.jar")
 
     @app.route(
-        "/api/v2/modelPackages/<model_package_id>/scoringCodeBuilds/",
-        methods=["POST"]
+        "/api/v2/modelPackages/<model_package_id>/scoringCodeBuilds/", methods=["POST"]
     )
     def model_pacakge_builds(model_package_id):
         return "", HTTPStatus.ACCEPTED, {"location": "status"}
