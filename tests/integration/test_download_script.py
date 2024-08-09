@@ -15,8 +15,7 @@ from multiprocessing import Process
 from pathlib import Path
 
 import pytest
-from bson import ObjectId
-from flask import Flask, send_file
+from flask import Flask, request, send_file
 from future.moves.urllib import parse
 
 multiprocessing.set_start_method("fork")
@@ -57,14 +56,17 @@ def mock_dr_app(class_names):
         }
 
     @app.route(
-        "/api/v2/modelPackages/<model_package_id>/scoringCodeBuilds/status",
+        "/api/v2/status/<model_package_id>/",
         methods=["GET"],
     )
     def model_pacakge_builds_status(model_package_id):
-        return {}, HTTPStatus.SEE_OTHER, {"Location": "download"}
+        download_url = (
+            f"{request.host_url}api/v2/modelPackages/{model_package_id}/download/"
+        )
+        return {}, HTTPStatus.SEE_OTHER, {"Location": download_url}
 
     @app.route(
-        "/api/v2/modelPackages/<model_package_id>/scoringCodeBuilds/download",
+        "/api/v2/modelPackages/<model_package_id>/download/",
         methods=["GET"],
     )
     def model_pacakge_builds_download(model_package_id):
@@ -77,7 +79,8 @@ def mock_dr_app(class_names):
         "/api/v2/modelPackages/<model_package_id>/scoringCodeBuilds/", methods=["POST"]
     )
     def model_pacakge_builds(model_package_id):
-        return "", HTTPStatus.ACCEPTED, {"location": "status"}
+        status_url = f"{request.host_url}api/v2/status/{model_package_id}/"
+        return "", HTTPStatus.ACCEPTED, {"location": status_url}
 
     def start_app():
         app.run(host=base_url, port=port)
@@ -93,7 +96,7 @@ def mock_dr_app(class_names):
 def test_script(mock_dr_app, class_names, tmpdir):
     env = os.environ.copy()
     extra_vars = {
-        "MLOPS_MODEL_PACKAGE_ID": str(ObjectId()),
+        "MLOPS_MODEL_PACKAGE_ID": "model_package_id_123",
         "TARGET_TYPE": "multiclass",
         "CODE_DIR": tmpdir,
         "DATAROBOT_ENDPOINT": mock_dr_app,
