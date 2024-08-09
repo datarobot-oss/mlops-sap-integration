@@ -37,18 +37,18 @@ class ModelPackageUtils:
         self.client = MLOpsClient(endpoint, token)
 
     def _write_class_names(self, class_names):
-        class_names_file = f"{self.output_dir}/classLabels.txt"
-        class_names_file = os.environ.get("CLASS_LABELS_FILE", class_names_file)
+        filename = f"{self.output_dir}/classLabels.txt"
+        filename = os.environ.get("CLASS_LABELS_FILE", filename)
 
-        print(f"Writing class names: {class_names} to : {class_names_file}")
-        with open(class_names_file, mode="w") as f:
+        print(f"Writing class names: {class_names} to : {filename}")
+        with open(filename, mode="w") as f:
             f.write("\n".join(class_names))
 
     def download(self):
         # When targetType == Multiclass, download the class names into a file
         if self.target_type.casefold() == "multiclass":
-            model_package_details = self.client.get_model_package(self.model_package_id)
-            class_names = model_package_details["target"]["classNames"]
+            details = self.client.get_model_package(self.model_package_id)
+            class_names = details["target"]["classNames"]
             self._write_class_names(class_names)
 
         self.client.download_model_package_from_registry(
