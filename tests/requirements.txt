@@ -1,0 +1,8 @@
+flask
+pytest
+datarobot-mlops
+datarobot-mlops-connected-client
+future
+flake8
+black
+isort
