@@ -5,7 +5,6 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 
-import os
 from unittest.mock import mock_open, patch
 
 import pytest
@@ -26,11 +25,10 @@ class TestModelPackageUtils:
         }
 
     @pytest.fixture(autouse=True)
-    def setup_env_vars(self, env_vars):
-        patcher = patch.dict(os.environ, env_vars)
-        patcher.start()
+    def setup_env_vars(self, env_vars, monkeypatch):
+        for var, value in env_vars.items():
+            monkeypatch.setenv(var, value)
         yield
-        patcher.stop()
 
     @pytest.fixture
     def mock_mlops_client(self):
@@ -50,9 +48,8 @@ class TestModelPackageUtils:
             env_vars["DATAROBOT_ENDPOINT"], env_vars["DATAROBOT_API_TOKEN"]
         )
 
-    def test_init_missing_env_vars(self, env_vars):
-        del os.environ["DATAROBOT_ENDPOINT"]
-
+    def test_init_missing_env_vars(self, env_vars, monkeypatch):
+        monkeypatch.delenv("DATAROBOT_ENDPOINT")
         with pytest.raises(ValueError, match="Missing environment variables:"):
             ModelPackageUtils()
 
@@ -69,13 +66,12 @@ class TestModelPackageUtils:
                 "\n".join(mock_class_names)
             )
 
-    def test_write_class_names_with_custom_file(self, mock_mlops_client):
+    def test_write_class_names_with_custom_file(self, mock_mlops_client, monkeypatch):
         mock_class_names = ["class1", "class2", "class3"]
         custom_file_path = "/custom/path/classLabels.txt"
 
-        with patch.dict(os.environ, {"CLASS_LABELS_FILE": custom_file_path}), patch(
-            "builtins.open", mock_open()
-        ) as mocked_file:
+        monkeypatch.setenv("CLASS_LABELS_FILE", custom_file_path)
+        with patch("builtins.open", mock_open()) as mocked_file:
             instance = ModelPackageUtils()
             instance._write_class_names(mock_class_names)
 
@@ -85,22 +81,24 @@ class TestModelPackageUtils:
             )
 
     @pytest.mark.parametrize("target_type", ["multiclass", "binary"])
-    def test_download_multiclass(self, target_type, mock_mlops_client, env_vars):
-        with patch.dict(os.environ, {"TARGET_TYPE": target_type}):
+    def test_download_multiclass(
+        self, target_type, mock_mlops_client, env_vars, monkeypatch
+    ):
+        monkeypatch.setenv("TARGET_TYPE", target_type)
 
-            instance = ModelPackageUtils()
-            instance.download()
-            mock = mock_mlops_client.return_value
+        instance = ModelPackageUtils()
+        instance.download()
+        mock = mock_mlops_client.return_value
 
-            if target_type == "multiclass":
-                mock.get_model_package.assert_called_once_with(
-                    env_vars["MLOPS_MODEL_PACKAGE_ID"]
-                )
-            else:
-                mock.get_model_package.assert_not_called()
-
-            mock.download_model_package_from_registry.assert_called_once_with(
-                env_vars["MLOPS_MODEL_PACKAGE_ID"],
-                env_vars["CODE_DIR"],
-                download_scoring_code=True,
+        if target_type == "multiclass":
+            mock.get_model_package.assert_called_once_with(
+                env_vars["MLOPS_MODEL_PACKAGE_ID"]
             )
+        else:
+            mock.get_model_package.assert_not_called()
+
+        mock.download_model_package_from_registry.assert_called_once_with(
+            env_vars["MLOPS_MODEL_PACKAGE_ID"],
+            env_vars["CODE_DIR"],
+            download_scoring_code=True,
+        )
