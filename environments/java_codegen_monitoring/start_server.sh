@@ -17,7 +17,12 @@ fi
 
 echo
 echo "Downloading model info/jar/classes"
+echo "Target type: ${TARGET_TYPE}"
 echo
+
+if [ "${TARGET_TYPE}" = "multiclass" ]; then
+  export CLASS_LABELS_FILE="${CODE_DIR}/classLabels.txt"
+fi
 python3 download_model.py
 
 echo
