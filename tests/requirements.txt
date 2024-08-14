@@ -3,3 +3,4 @@ pytest
 datarobot-mlops
 datarobot-mlops-connected-client
 future
+docker
