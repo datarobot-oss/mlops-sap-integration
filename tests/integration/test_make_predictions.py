@@ -52,6 +52,7 @@ def run_sap_integration_image():
             SAP_MLOPS_INTEGRATION_IMAGE,
             ports={"9001/tcp": ("127.0.0.1", "9001")},
             environment=envvars,
+            extra_hosts={"host.docker.internal": "host-gateway"},
             network_mode=network_mode,
             detach=True,
         )
