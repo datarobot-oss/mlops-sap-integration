@@ -14,3 +14,4 @@ python -m pytest -v ./tests/unit/test_download_methods.py
 
 echo "Running integration tests"
 python -m pytest -v ./tests/integration/test_download_script.py
+python -m pytest -v ./tests/integration/test_make_predictions.py
