@@ -30,3 +30,11 @@ jobs:
       - name: Test with pytest
         run: |
           bash ./tests/run_tests.sh
+
+      - name: Building docker image
+        run: |
+          make -C environments/java_codegen_monitoring  build
+
+      - name: Run docker tests
+        run: |
+          bash ./tests/run_docker_tests.sh
