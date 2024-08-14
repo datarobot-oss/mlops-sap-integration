@@ -2,7 +2,7 @@ SHELL = /bin/sh
 
 NS := datarobot-oss
 IMAGE_NAME := mlops-sap-monitoring-scoring-code
-VERSION := 1.0.1
+VERSION := $(shell cat VERSION)
 
 REGISTRY := ghcr.io
 DOCKERFILE := Dockerfile
