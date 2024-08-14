@@ -1,4 +1,4 @@
-name: Basic tests
+name: Docker tests
 
 on:
   pull_request:
@@ -25,6 +25,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r tests/requirements.txt
 
-      - name: Test with pytest
+      - name: Building docker image
         run: |
-          bash ./tests/run_tests.sh
+          make -C environments/java_codegen_monitoring  build
+
+      - name: Run docker tests
+        run: |
+          bash ./tests/run_docker_tests.sh
