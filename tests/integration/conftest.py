@@ -25,7 +25,7 @@ logger = logging.getLogger("datarobot.sap.integration")
 def model_packages():
     return {
         "iris_multiclass_package": {
-            "details":  {
+            "details": {
                 "id": "iris_multiclass_package",
                 "name": "Multiclass Model",
                 "modelId": "668c763b57e16e20e29e67e",
@@ -33,10 +33,10 @@ def model_packages():
                     "name": "Species",
                     "type": "multiclass",
                     "classNames": ["viginica c g", "versicolor", "setosa color"],
-                }
+                },
             },
             "model_dataset": TEST_DIR / "data" / "mlops-example-iris-samples.csv",
-            "model_jar":  TEST_DIR / "data" / "ScoringCodeIrisSamples.jar",
+            "model_jar": TEST_DIR / "data" / "ScoringCodeIrisSamples.jar",
         },
         "10k_diabetes_package": {
             "details": {
@@ -46,12 +46,12 @@ def model_packages():
                 "target": {
                     "name": "readmitted",
                     "type": "binary",
-                    "classNames": ["True", "False"]
-                }
+                    "classNames": ["True", "False"],
+                },
             },
             "model_dataset": TEST_DIR / "data" / "mlops-example-10k-diabetes.csv",
             "model_jar": TEST_DIR / "data" / "CodeGen10KDiabetes.jar",
-        }
+        },
     }
 
 
@@ -89,7 +89,9 @@ def mock_dr_app(model_packages, mock_dr_app_port):
     )
     def model_pacakge_builds_download(model_package_id):
         model_jar_filename = model_packages.get(model_package_id, {}).get("model_jar")
-        return send_file(str(model_jar_filename), as_attachment=True, download_name="model.jar")
+        return send_file(
+            str(model_jar_filename), as_attachment=True, download_name="model.jar"
+        )
 
     @app.route(
         "/api/v2/modelPackages/<model_package_id>/scoringCodeBuilds/", methods=["POST"]

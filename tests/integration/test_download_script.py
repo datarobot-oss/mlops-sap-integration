@@ -10,7 +10,6 @@ import os
 import subprocess
 from pathlib import Path
 
-
 ENVS_DIR = Path(__file__).parent.parent.parent / "environments"
 download_file = ENVS_DIR / "java_codegen_monitoring" / "download_model.py"
 
@@ -26,7 +25,7 @@ def test_script(mock_dr_app, mock_dr_app_port, model_packages, tmpdir):
         "MLOPS_MODEL_PACKAGE_ID": model_package_id,
         "TARGET_TYPE": model_package["target"]["type"],
         "CODE_DIR": tmpdir,
-        "DATAROBOT_ENDPOINT":  f"http://localhost:{mock_dr_app_port}",
+        "DATAROBOT_ENDPOINT": f"http://localhost:{mock_dr_app_port}",
         "DATAROBOT_API_TOKEN": "secret_token",
     }
     env.update(extra_vars)
