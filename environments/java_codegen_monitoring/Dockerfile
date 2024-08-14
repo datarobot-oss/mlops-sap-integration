@@ -31,7 +31,6 @@ COPY ./*.sh ${CODE_DIR}/
 COPY ./nginx.conf /etc/nginx/nginx.conf
 
 ENV WITH_ERROR_SERVER=1
-ENV CLASS_LABELS_FILE=${CODE_DIR}/classLabels.txt
 
 ENTRYPOINT ["/opt/code/start_server.sh"]
 
