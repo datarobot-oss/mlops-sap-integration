@@ -8,6 +8,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import contextlib
 import logging
 import time
+from io import BytesIO
 
 import pandas as pd
 import pytest
@@ -19,6 +20,7 @@ logger = logging.getLogger("datarobot.sap.integration")
 SAP_MLOPS_INTEGRATION_IMAGE = (
     "ghcr.io/datarobot-oss/mlops-sap-monitoring-scoring-code:latest"
 )
+MAX_ROWS_PER_REQUEST = 1000
 
 
 def _wait_for_container_healthy(container, ping_url, timeout=100, interval=2):
@@ -96,14 +98,49 @@ def test_run_server(
 
     base_url = "http://localhost:9001"
     with run_sap_integration_image(env_vars, f"{base_url}/v1/ping/"):
-        # Make predictions
         dataset = model_packages[model_package_id].get("model_dataset")
+        data_chunks = pd.read_csv(dataset, chunksize=MAX_ROWS_PER_REQUEST)
+
+        for chunk in data_chunks:
+            # Convert the chunk to a CSV byte stream
+            csv_data = BytesIO()
+            chunk.to_csv(csv_data, index=False)
+            csv_data.seek(
+                0
+            )  # Reset the BytesIO object to start reading from the beginning
+
+            # Make predictions
+            response = requests.post(
+                f"{base_url}/v1/predict/",
+                data=csv_data,
+            )
+            assert response.status_code == 200
+
+            # assert number of predictions
+            predictions = response.json().get("predictions", [])
+            assert len(predictions) == len(chunk)
+
+
+def test_run_server_large_request(
+    mock_dr_app,
+    mock_dr_app_port,
+    run_sap_integration_image,
+    model_packages,
+):
+    env_vars = {
+        "MLOPS_MODEL_PACKAGE_ID": "10k_diabetes_package",
+        "TARGET_TYPE": "binary",
+        "DATAROBOT_ENDPOINT": f"http://host.docker.internal:{mock_dr_app_port}",
+        "DATAROBOT_API_TOKEN": "secret_token",
+        "POSITIVE_CLASS_LABEL": "True",
+        "NEGATIVE_CLASS_LABEL": "False",
+    }
+
+    base_url = "http://localhost:9001"
+    with run_sap_integration_image(env_vars, f"{base_url}/v1/ping/"):
+        # Make large number of predictions in a single request
+        dataset = model_packages["10k_diabetes_package"].get("model_dataset")
         response = requests.post(
             f"{base_url}/v1/predict/", data=dataset.open(mode="rb")
         )
-        assert response.status_code == 200
-
-        # assert number of predictions
-        predictions = response.json().get("predictions", [])
-        dataset = pd.read_csv(dataset)
-        assert len(predictions) == len(dataset)
+        assert response.status_code == 413
