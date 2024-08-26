@@ -103,16 +103,14 @@ def test_run_server(
 
         for chunk in data_chunks:
             # Convert the chunk to a CSV byte stream
-            csv_data = BytesIO()
-            chunk.to_csv(csv_data, index=False)
-            csv_data.seek(
-                0
-            )  # Reset the BytesIO object to start reading from the beginning
+            csv_chunk = BytesIO()
+            chunk.to_csv(csv_chunk, index=False)
+            csv_chunk.seek(0)
 
             # Make predictions
             response = requests.post(
                 f"{base_url}/v1/predict/",
-                data=csv_data,
+                data=csv_chunk,
             )
             assert response.status_code == 200
 
