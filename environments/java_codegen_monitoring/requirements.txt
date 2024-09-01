@@ -14,7 +14,7 @@ certifi==2024.7.4
 charset-normalizer==3.3.2
 click==8.1.7
 datarobot==3.4.0
-datarobot-drum==1.11.5
+datarobot-drum==1.11.6
 datarobot-mlops==10.0.7
 datarobot-mlops-connected-client==10.0.7
 docker==4.4.4
