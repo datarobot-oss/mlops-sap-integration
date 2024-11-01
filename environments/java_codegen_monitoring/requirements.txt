@@ -15,7 +15,7 @@ charset-normalizer==3.3.2
 click==8.1.7
 datarobot==3.4.0
 datarobot-drum==1.11.5
-datarobot-mlops==10.0.7
+datarobot-mlops==10.2.0
 datarobot-mlops-connected-client==10.2.0
 docker==4.4.4
 flask==2.2.5
